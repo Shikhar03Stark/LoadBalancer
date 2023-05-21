@@ -1,12 +1,13 @@
 package com.hv.harshit.balancer.balancerapplication.service.impl;
 
+import com.hv.harshit.balancer.balancerapplication.contoller.dto.InstanceMetricResponseDto;
 import com.hv.harshit.balancer.balancerapplication.enums.WindowSize;
 import com.hv.harshit.balancer.balancerapplication.mapper.InstanceMapper;
 import com.hv.harshit.balancer.balancerapplication.model.Instance;
 import com.hv.harshit.balancer.balancerapplication.persistance.repository.InstanceRepository;
 import com.hv.harshit.balancer.balancerapplication.service.InstanceMetrics;
+import com.hv.harshit.balancer.balancerapplication.utils.CostCalculator;
 import com.hv.harshit.balancer.balancerapplication.utils.WindowQueue;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -76,14 +77,64 @@ public class InstanceMetricsImpl implements InstanceMetrics {
 
     @Override
     public double getServeRatio(String containerId) {
-        final long serveCount = serveCountMap.get(containerId);
-        final long failCount = failCountMap.get(containerId);
+        final long serveCount = serveCountMap.getOrDefault(containerId, 0L);
+        final long failCount = failCountMap.getOrDefault(containerId, 0L);
 
         return serveCount/(1.0 + serveCount + failCount);
     }
     @Override
     public double getAvgResponseTime(String containerId, WindowSize windowSize) {
-        return _responseTimeQueueMap.get(containerId).get(windowSize).average();
+        return responseTimeQueueMap().get(containerId).get(windowSize).average();
+    }
+
+    @Override
+    public List<WindowSize> getWindowSizes() {
+        return windowSizes;
+    }
+
+    @Override
+    public long getServeCount(String containerId) {
+        return serveCountMap.getOrDefault(containerId, 0L);
+    }
+
+    @Override
+    public long getFailCount(String containerId) {
+        return failCountMap.getOrDefault(containerId, 0L);
+    }
+
+    @Override
+    public InstanceMetricResponseDto getInstanceMetrics(String containerId) {
+        final Map<WindowSize, WindowQueue> queueMap = responseTimeQueueMap().get(containerId);
+        final Map<WindowSize, Double> avgResponseTime = new HashMap<>();
+        windowSizes.forEach(windowSize -> avgResponseTime.put(windowSize, queueMap.get(windowSize).average()));
+        return buildResponseDto(containerId, avgResponseTime);
+    }
+
+    private InstanceMetricResponseDto buildResponseDto(String containerId, Map<WindowSize, Double> avgResponseTime) {
+        final double weightedCost = CostCalculator.weightedCost(containerId, this);
+        final double bestCost = CostCalculator.bestCost(containerId, this);
+
+        final Map<String, Double> costMap = new HashMap<>();
+        costMap.put("weightedCost", weightedCost);
+        costMap.put("bestCost", bestCost);
+
+        return InstanceMetricResponseDto.builder()
+                .containerId(containerId)
+                .avgResponseTime(avgResponseTime)
+                .serveCount(serveCountMap.getOrDefault(containerId, 0L))
+                .failCount(failCountMap.getOrDefault(containerId, 0L))
+                .serveRatio(getServeRatio(containerId))
+                .costs(costMap)
+                .build();
+    }
+
+    @Override
+    public List<InstanceMetricResponseDto> getAllInstanceMetrics() {
+        return runningInstances()
+                .keySet()
+                .stream()
+                .map(this::getInstanceMetrics)
+                .collect(Collectors.toList());
     }
 
     private Map<String, Instance> runningInstances() {

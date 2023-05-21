@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
+import static com.hv.harshit.balancer.balancerapplication.utils.SemaphoreUtils.acquireLock;
+import static com.hv.harshit.balancer.balancerapplication.utils.SemaphoreUtils.releaseLock;
+
 @Slf4j
 public class WindowQueue {
     private final Semaphore runningSumSemaphore = new Semaphore(1);
@@ -55,19 +58,6 @@ public class WindowQueue {
 
         return elements;
     }
-
-    private void acquireLock(Semaphore semaphore){
-        try {
-            semaphore.acquire();
-        } catch (InterruptedException exception){
-            log.info("Waiting for acquiring semaphore");
-        }
-    }
-
-    private void releaseLock(Semaphore semaphore){
-        semaphore.release();
-    }
-
     public double average(){
         if(window.isEmpty()){
             return 0;

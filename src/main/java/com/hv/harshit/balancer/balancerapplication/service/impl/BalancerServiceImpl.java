@@ -36,9 +36,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BalancerServiceImpl implements BalancerService {
     private final InstanceMapper instanceMapper;
-
     private static final String URI_SCHEME = "http";
-
     private final LoadBalancerStrategyFactory loadBalancerStrategyFactory;
     private final InstanceMetrics instanceMetrics;
     private final InstanceRepository instanceRepository;
@@ -82,9 +80,9 @@ public class BalancerServiceImpl implements BalancerService {
         final StopWatch pickingInstance = new StopWatch();
         pickingInstance.start();
         Instance pickedInstance;
-        try{
+        try {
             pickedInstance = loadBalancer.pickInstance(openInstances, instanceMetrics);
-        } catch (NoRunningInstanceException exception){
+        } catch (NoRunningInstanceException exception) {
             pickingInstance.stop();
             return ResponseEntity.internalServerError().build();
         }
@@ -92,19 +90,19 @@ public class BalancerServiceImpl implements BalancerService {
 
         final StopWatch responseTime = new StopWatch();
         responseTime.start();
-        try{
+        try {
             final ResponseEntity<String> responseEntity = forwardRequestToInstance(request, body, pickedInstance);
             responseTime.stop();
             instanceMetrics.increaseServeCount(pickedInstance.getContainerId());
             instanceMetrics.setLatestResponseTime(pickedInstance.getContainerId(), responseTime.getTime());
 
             return responseEntity;
-        } catch (WebClientException exception){
+        } catch (WebClientException exception) {
             log.info("Error while proxying request. error={} stackTrace={}", exception.getMessage(), ExceptionUtils.getStackTrace(exception));
             instanceMetrics.increaseFailCount(pickedInstance.getContainerId());
             return ResponseEntity.internalServerError().build();
         } finally {
-            if(!responseTime.isStopped()){
+            if (!responseTime.isStopped()) {
                 responseTime.stop();
             }
             log.info("Instance id={} took time={}ms pickingTime={}", pickedInstance.getContainerId(), responseTime.getTime(), pickingInstance.getTime());
@@ -120,9 +118,9 @@ public class BalancerServiceImpl implements BalancerService {
     }
 
     private LoadBalancerAlgorithm getLoadBalancerAlgorithm(String loadBalancingAlgorithm) {
-        try{
+        try {
             return LoadBalancerAlgorithm.valueOf(loadBalancingAlgorithm);
-        } catch (IllegalArgumentException exception){
+        } catch (IllegalArgumentException exception) {
             return LoadBalancerAlgorithm.RANDOM;
         }
     }
