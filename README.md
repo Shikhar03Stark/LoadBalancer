@@ -43,6 +43,7 @@ Let `F(x) = (e^x - 1)/(e^x + 1)`, then `w = F(C/(1+T))` here I have taken **C** 
  - The image should exist before running the application `docker build ...` or `docker pull ...`
  - Range of open ports should not be less than number of replicas of your app
  - Must have Java and Maven CLI installed
+ - Should have postgres instance with balancer_transactions table
  
 1. Clone the repository
 2. Install dependencies `mvn install`
