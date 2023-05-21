@@ -3,7 +3,7 @@ Load Balancer which can handle traffic for multiple replica to simulate parallel
 
 ---
 
-This is a Spring boot application which acts as a load balancer and help simulate parallel environment for your code and test behaviour. This started out as a problem I dealt with during my work, where I was not able to properly test my code in parallel situations and identify race conditions due to complex business logic behind. Then I tought of creating a basic layer 7 Load balancer.
+This is a Spring boot application which acts as a load balancer and help simulate parallel environment for your code and test behaviour. This started out as a problem I dealt with during my work, where I was not able to properly test my code in parallel situations and identify race conditions due to complex business logic behind. Then I thought of creating a basic layer 7 Load balancer.
 
 Initially, I implemented a random algorithm to route the traffic to any of the available containers, then I learnt a bit mroe about Load balancing algorithms from [CloudFlare](https://www.cloudflare.com/learning/performance/types-of-load-balancing-algorithms/) which got me curious in implementing the algorithms and come up with some new dynamic algorithm to balance the load.
 
