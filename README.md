@@ -25,7 +25,7 @@ This algorithm routes the request in a cyclic fashion so that each of the contai
 
 1. Minimum Response Time:
 This algorithm calculates the average of last 10 response time of all available containers and picks the one with minimum value. This algorithm picks the best performing server since last n requests and statiscally, the next request on this server will take lesser time than other. Although, this approach deals with starvation problem, if a server failed to respond or took more time due to unknow reasons, it is heavily penalized and not given a chance to serve more requests.
-*The Average response time is calculated as follows (for last 5 response times), let the last 5 response times to serve the request for server S was (15, 23, 22, 18, 20) in chronological order. Then the cost of server is 82. Now a new request was served in 19ms then the response time window will look like (23, 22, 18, 20, 19).*
+*The Average response time is calculated as follows (for last 5 response times), let the last 5 response times to serve the request for server S was (15, 23, 22, 18, 20) in chronological order. Then the cost of server is 19.6. Now a new request was served in 19ms then the response time window will look like (23, 22, 18, 20, 19).*
 
 2. Weighted Response Time:
 This alorithm is a variation of above algorithm which calculates the weighted average of last 10, 100, 1000 requests and then calcluate the cost, the weights are (1/10, 1/100, 1/1000) respectively.
